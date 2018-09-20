@@ -101,7 +101,7 @@ type HTTPAdapter struct {
 	totalMessageCount int
 	bufferMutex       sync.Mutex
 	useGzip           bool
-	crash			  bool
+	crash             bool
 }
 
 // NewHTTPAdapter creates an HTTPAdapter
@@ -258,7 +258,8 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	go func() {
 
 		// Create the request and send it on its way
-		request := createRequest(a.url, a.useGzip, payload)
+		bearer := getStringParameter(a.route.Options, "http.bearer", "")
+		request := createRequest(a.url, a.useGzip, payload, bearer)
 		start := time.Now()
 		response, err := a.client.Do(request)
 		if err != nil {
@@ -292,7 +293,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 }
 
 // Create the request based on whether GZIP compression is to be used
-func createRequest(url string, useGzip bool, payload string) *http.Request {
+func createRequest(url string, useGzip bool, payload string, bearer string) *http.Request {
 	var request *http.Request
 	if useGzip {
 		gzipBuffer := new(bytes.Buffer)
@@ -322,6 +323,9 @@ func createRequest(url string, useGzip bool, payload string) *http.Request {
 			// TODO @raychaser - now what?
 			die("", "http: error on http.NewRequest:", err, url)
 		}
+	}
+	if len(bearer) > 0 {
+		request.Header.Set("Authorization", "Bearer "+bearer)
 	}
 	return request
 }
