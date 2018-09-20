@@ -253,7 +253,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	}
 
 	// Glue all the JSON representations together into one payload to send
-	payload := strings.Join(messages, "\n")
+	payload := "[\n" + strings.Join(messages, ",\n") + "\n]"
 
 	go func() {
 
@@ -327,6 +327,7 @@ func createRequest(url string, useGzip bool, payload string, bearer string) *htt
 	if len(bearer) > 0 {
 		request.Header.Set("Authorization", "Bearer "+bearer)
 	}
+	request.Header.Set("Content-Type", "application/json")
 	return request
 }
 
